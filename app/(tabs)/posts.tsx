@@ -2,21 +2,29 @@
 
 import {Text, View, FlatList, StyleSheet, Dimensions} from "react-native"
 
+import { useEffect, useState } from "react"; // useEffect 라이프 사이클, useState 배열 함수 설정 import
+
+
+
 export default function Posts() {
 
-    // 변수 필드
-    const posts: { id: number; title: string}[] = [
-        {id : 1, title : "게시글 1"},
-        {id : 2, title : "게시글 2"},
-        {id : 3, title : "게시글 3"},
-        {id : 4, title : "게시글 4"},
-        {id : 5, title : "게시글 5"},
-        {id : 6, title : "게시글 6"},
-        {id : 7, title : "게시글 7"},
-        {id : 8, title : "게시글 8"},
-        {id : 9, title : "게시글 9"},
-        {id : 10, title : "게시글 10"}
-    ];
+    // 배열 설정 setPosts (setPosts는 이전 상태값과 비교해서 같으면 렌더링 금지, 같지 않으면 렌더링 실행)
+    const [posts, setPosts] = useState<{ id: number; title: string }[]>([]);
+
+
+    // 화면이 시작할 때 실행하는 라이프사이클(useEffect)
+    useEffect( () => {
+
+        // 외부에서 json 데이터를 받아 배열에 넣는 함수
+        const fetchPosts = async () => {
+            const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+            const data = await response.json();
+            setPosts(data); // 렌더링 필터 배열
+        }
+
+        // 함수 실행
+        fetchPosts();
+    }, []);
 
 
 
@@ -26,7 +34,7 @@ export default function Posts() {
         // 화면 View의 style은 전체 함수 밖의 styles.postContainer에 의해 통제
         <View style={styles.postContainer}>
         
-        {/* posts.map과 비슷한 것 */}
+        {/* posts.map과 비슷한 것, 데이터를 반복해서 렌더링해주는 도구  */}
         <FlatList
 
           data={posts}  // 사용할 데이터
@@ -35,7 +43,15 @@ export default function Posts() {
           keyExtractor={item => item.id.toString()} // 키 추출 toString()
 
           // renderIten은 item 객체 자체를 받으므로 ({})사용 {}만 사용 시 함수 바디로 착각
-          renderItem={({item}) => <Text style={styles.postItem}>{item.title}</Text> } //아이템 추출
+          renderItem={({item}) => (
+
+            // style={styles.postItem}의 설정이 박스처럼 보이게 함, View는 요소를 하나로 묶는 역할
+            <View style={styles.postItem}>
+            <Text style={styles.postId}>{item.id}번 게시물</Text>
+            <Text style={styles.postTitle}>{item.title}</Text>
+            </View>
+
+          ) } //아이템 추출
         
           // FlatList 안에 아이템들에 대한 전체적인 설정(ex. 배치)
           contentContainerStyle={styles.listWrap}
@@ -71,7 +87,19 @@ const styles = StyleSheet.create({
         
     },
 
-    // FlatList 개별 Item 설정
+    // id 값 설정
+    postId : {
+        fontSize : 16,
+        fontWeight : "bold"
+    },
+
+    // title 값 설정
+    postTitle : {
+        fontSize : 16,
+        fontWeight : "bold"
+    },
+
+    // FlatList 개별 Item 설정, 화면에 박스 생성
     postItem : {
         backgroundColor : '#fff',
         padding : 16,   // 안쪽 여백
